@@ -26,15 +26,14 @@ if server
 Else
 server= Waiting...
 
-
-
 StayOnTop = OFF
 StopAtCharScreen = 0
 
 
 arrayEU := array("EUWest", "EUWest2", "EUSouth", "EUSouthWest", "EUNorth", "EUNorth2","EUEast")
-arrayUS := array("USWest","USWest2","USEast","USEast2","USEast3","USSouth","USSouth2","USSouth3","USSouthWest","USMidWest","USMidWest2","USNorthWest")
-arrayRealms :=array("Beholder","Cyclops","Medusa","Djinn","Ogre")
+;arrayUS := array("USWest","USWest2","USEast","USEast2","USEast3","USSouth","USSouth2","USSouth3","USSouthWest","USMidWest","USMidWest2","USNorthWest")
+arrayUS := array("USWest","USWest2","USEast","USEast2","USEast3","USSouth","USSouth3","USSouthWest","USMidWest","USMidWest2","USNorthWest")
+arrayRealms :=array("Beholder","Cyclops","Medusa","Djinn","Ogre","Flayer","GuildHall","BeholderS","DjinnS","CyclopsS","FlayerS","MedusaS","OgreS")
 
 
 ServersGUIButtonAdd(Name,Custom=""){
@@ -63,11 +62,6 @@ IniRead, InteractionKey, config.ini, Hotkeys, InteractionKey
 Hotkey, ~%InteractionKey%, FindRealmSub
 Hotkey, ~LButton, FindRealmSubClick
 
-IniRead, OptionsKey, config.ini, Hotkeys, OptionsKey
-if OptionsKey = ESC
-	isESC = Checked
-else
-	isESC = 
 Gui 1:+LabelRealmBuddy
 Gui, RealmBuddy:Margin, 5, 5
 Gui, RealmBuddy:font, s9, Tahoma
@@ -159,7 +153,8 @@ Loop, read, callouts.ini
 	Gui, EventList:Add, Button, w80 h25 gCallForEvent, %callout1%
 }
 
-EvenListX := (A_ScreenWidth - 230)
+;EvenListX := (A_ScreenWidth - 230)
+EvenListX := (A_ScreenWidth - 430)
 Gui, EventList:Show, x%EvenListX% Hide,Realm Caller
 Gui, EventList:+ToolWindow
 
@@ -173,7 +168,7 @@ Gui, Settings:Add, Edit, w300 r1 vTitleEdit,%WinTitle%
 Gui, Settings:Add, GroupBox, w130 , Quality Settings
 Gui, Settings:Add, DropDownList, w120 yp20 xp5 %QualitySaved% vquality, High|Middle|Low
 
-Gui, Settings:Add, GroupBox, w300 h120 xp165 yp-20, Hotkeys ;Hotkeys Settings
+Gui, Settings:Add, GroupBox, w300 h95 xp165 yp-20, Hotkeys ;Hotkeys Settings
 Gui, Settings:Add, Text, w100 yp20 xp5, Servers List GUI: ;Server GUI hotkey
 Gui, Settings:Add, Hotkey, vServerNewGUIHotkey h20 w40 yp-4 xp95,%ServerGuiHotkey%
 
@@ -187,12 +182,7 @@ Gui, Settings:Add, Text, w90 yp20 yp3 xp50, Event List Menu: ;Event MENU hotkey
 Gui, Settings:Add, Hotkey, vEventNewMenuHotkey h20 w40 yp-4 xp95 ,%EventMenuHotkey%
 
 Gui, Settings:Add, Text,w120 yp30 xp-240, In-Game Interaction Key: ;Interaction hotkey
-Gui, Settings:Add, Hotkey, vInteractionNewHotkey h20 w40 yp-4 xp120,%InteractionKey%
-
-Gui, Settings:Add, Text,w120 yp30 xp-120, In-Game Options Key: ;Options hotkey
-Gui, Settings:Add, Hotkey, vOptionsNewHotkey h20 w40 yp-4 xp120,%OptionsKey%
-
-Gui, Settings:Add, Checkbox, xp50 vOptionsNewHotkeyESC %isESC%, Esc
+Gui, Settings:Add, Hotkey, vInteractionHotkey h20 w40 yp-4 xp120,%InteractionKey%
 Gui, Settings:Add, Button, center x300 w80 h25 , Cancel
 Gui, Settings:Add, Button, center yp0 xp85  h25 gSaveSettings, Save and Reload
 Gui, Settings:Show, Hide ,Settings
@@ -209,7 +199,9 @@ Gui, ServersGUI:Add, Text,vRealmGUI yp5 xp105 w215 h20 Right,%server%
 Gui, ServersGUI:Add, Picture, xp-105 yp-9 h30  BackgroundTrans,files/servers_bg.png
 
 Gui, ServersGUI:Margin,0,10 
+;Gui, ServersGUI:Margin,0,15 ;15 is good spacing, but columns need to be wider
 Gui, ServersGUI:Font, S10 cWhite w450
+;Gui, ServersGUI:Font, S20 cWhite w850
 
 ;Create buttons for EU servers
 for k, v in arrayEU {
@@ -228,11 +220,13 @@ for k, v in arrayUS {
 ServersGUIButtonAdd("AsiaSouthEast","xp+110 yp-337")
 ServersGUIButtonAdd("AsiaEast")
 
+;Gui, ServersGUI:Font, S9
 Gui, ServersGUI:Font, S9
 Gui, ServersGUI:Color, 363636
 Gui, ServersGUI:Add, CheckBox, w100 h40 gCHAR_CHECKBOX2 vCHAR2  c84E060, C h a r`nC h a n g e
 Gui, ServersGUI:+ToolWindow -Caption +AlwaysOnTop
 Gui, ServersGUI:Show, Hide w320 h430, ServGUI
+;Gui, ServersGUI:Show, Hide w720 h630, ServGUI
 
 CloseServersGUI(){
 	Gui, ServersGUI:Submit, Hide
@@ -289,6 +283,8 @@ Menu, ASIAmenu, Add, AsiaEast, PickServerMENU
 Menu, ServersMenu, Add, ASIA, :ASIAmenu
 
 
+ClosePopup1()
+
 Loop, read, callouts.ini
 {
 	callout := A_LoopReadLine
@@ -338,15 +334,6 @@ SaveSettings:
 	Iniread, EventMenuHotkey, config.ini, Hotkeys, EventMenuHotkey
 	Hotkey, %EventMenuHotkey%, EventMenuSub, Off
 	IniWrite, %EventNewMenuHotkey%, config.ini, Hotkeys, EventMenuHotkey	
-	
-	IniWrite, %InteractionNewHotkey%, config.ini, Hotkeys, InteractionKey
-	IniRead, InteractionKey, config.ini, Hotkeys, InteractionKey
-	if OptionsNewHotkeyESC
-	{
-		OptionsNewHotkey = ESC
-	}
-	IniWrite, %OptionsNewHotkey%, config.ini, Hotkeys, OptionsKey
-	IniRead, OptionsKey, config.ini, Hotkeys, OptionsKey
 	
 	IniRead, WinTitle, config.ini,  Settings, WindowTitle
 	Reload
@@ -431,7 +418,7 @@ IfWinExist, %WinTitle%
 	WinActivate, %WinTitle%
 	Loop
 	{
-		ImageSearch, bagX, bagY, 0, 0, A_ScreenWidth, A_ScreenHeight, *24 files\bag.png
+		ImageSearch, bagX, bagY, 0, 0, A_ScreenWidth, A_ScreenHeight, *24 files\bagfs2.png
 		if ErrorLevel = 1
 		{
 			if a_index > 2
@@ -465,7 +452,7 @@ IfWinExist, %WinTitle%
 		GuiControl,, ERROR, GOOD
 	
 		Click %bagX%, %bagY%
-		Send {o}
+		Send {ESC}
 		GuiControl,RealmBuddy:, REALM, Waiting...
 		realm = 
 		Loop
@@ -481,10 +468,13 @@ IfWinExist, %WinTitle%
 					Continue
 		}
 		
-		HomeX := (bagX + 70)
-		HomeY := (bagY + 187) 
+		;HomeX := (bagX + 70)
+		;HomeY := (bagY + 187) 
 
+		HomeX := (bagX + 233) ; works for FS
+		HomeY := (bagY + 340) ;works for FS
 
+		
 		Click %HomeX%, %HomeY%
 		Gosub, ChangeServer2
 	Return
@@ -499,7 +489,7 @@ ChangeServer2:
 	KillScript = 0
 	Loop
 	{
-		ImageSearch, positionX, positionY, 0, 0, A_ScreenWidth, A_ScreenHeight, *24 files\position.png
+		ImageSearch, positionX, positionY, 0, 0, A_ScreenWidth, A_ScreenHeight, *24 files\positionfs.png
 		if ErrorLevel = 1
 		{
 			if a_index > 25
@@ -535,26 +525,36 @@ else
 
 	if StopAtCharScreen = 0 
 	{
-		MouseClick, Left, positionX-462, positionY+511 ; MAIN button
+		;MouseClick, Left, positionX-462, positionY+511 ; MAIN button
+		MouseClick, Left, positionX-1129, positionY+853 ; MAIN button
 			Sleep 50
-		MouseClick, Left, positionX-462, positionY+511 ; SERVERS button
+		;MouseClick, Left, positionX-462, positionY+511 ; SERVERS button
+		MouseClick, Left, positionX-1129, positionY+853 ; SERVERS button
 			Sleep 50
 
 			if scroll = 1
 			{
-				MouseClickDrag, L, positionX+13, positionY+101, positionX+13, positionY+481
+				;MouseClickDrag, L, positionX+13, positionY+101, positionX+13, positionY+481
+				MouseClickDrag, L, positionX+21, positionY+234, positionX+21, positionY+534
 			}
 			MouseClick, Left, positionX - serverX, positionY + serverY ; Server name
 			
-			MouseClick, Left, positionX - 373, positionY + 515 ; DONE button
+			Sleep 50
+			
+			;MouseClick, Left, positionX - 373, positionY + 515 ; DONE button
+			MouseClick, Left, positionX - 909, positionY + 854 ; DONE button
 				Sleep 50
-			MouseClick, Left, positionX - 373, positionY + 515 ; DONE button
-				Sleep 50
+			;MouseClick, Left, positionX - 373, positionY + 515 ; DONE button
+			MouseClick, Left, positionX - 909, positionY + 854 ; DONE button
+				
+						
+				
 			MouseMove, positionX - 382, positionY + 501
 			GuiControlGet, CHAR, RealmBuddy:
 			if CHAR = 0 
 			{
-				MouseClick, Left, positionX - 373, positionY + 515 ; DONE button
+				;MouseClick, Left, positionX - 373, positionY + 515 ; DONE button
+				MouseClick, Left, positionX - 909, positionY + 854 ; DONE button
 				Sleep 50
 				MouseMove, positionX - 382, positionY + 221
 			}
@@ -566,8 +566,71 @@ else
 
 Return
 }
+
+ClosePopup1()
+{
+loop {
+		Sleep 150
+		WinGetActiveStats, Title, Width, Height, X, Y 
+	if ( (Title == "Adobe Flash Player 11") or (Title == "Adobe Flash Player 12") )
+	{
+	MouseGetPos, OriginalPositionX, OriginalPositionY        	
+		KillScript = 0
+		;Loop
+		;{
+			ImageSearch, positionX, positionY, Width/2, 0, Width, A_ScreenHeight, *24 files\xs\x1.png
+	;		if ErrorLevel = 2
+			;MsgBox Could not conduct the search.
+	;	else if ErrorLevel = 1
+			;MsgBox Icon could not be found on the screen.
+	;	else
+	if ErrorLevel = 0
+	CloseXReturnMouse(positionX, positionY, OriginalPositionX, OriginalPositionY)
+			;MsgBox The icon was found at %positionX% x %positionY%.  sdfsdf
+			;MouseClick, Left, positionX+2, positionY+2 
+			
+	ImageSearch, positionX, positionY, Width/2, 0, Width, A_ScreenHeight, *24 files\xs\x2.png
+		if ErrorLevel = 0
+		CloseXReturnMouse(positionX, positionY, OriginalPositionX, OriginalPositionY)
+			;MsgBox The icon was found at %positionX% x %positionY%.  sdfsdf
+			;MouseClick, Left, positionX+2, positionY+2 					
+			
+	ImageSearch, positionX, positionY, Width/2, 0, Width, A_ScreenHeight, *24 files\xs\x3.png
+		if ErrorLevel = 0
+			;MsgBox The icon was found at %positionX% x %positionY%.  sdfsdf
+			CloseXReturnMouse(positionX, positionY, OriginalPositionX, OriginalPositionY)
+							
+	ImageSearch, positionX, positionY, Width/2, 0, Width, A_ScreenHeight, *24 files\xs\x4.png
+		if ErrorLevel = 0
+			;MsgBox The icon was found at %positionX% x %positionY%.  sdfsdf
+			CloseXReturnMouse(positionX, positionY, OriginalPositionX, OriginalPositionY)				
+				
+	ImageSearch, positionX, positionY, Width/2, 0, Width, A_ScreenHeight, *24 files\xs\x5.png
+		if ErrorLevel = 0
+			;MsgBox The icon was found at %positionX% x %positionY%.  sdfsdf
+			CloseXReturnMouse(positionX, positionY, OriginalPositionX, OriginalPositionY)
+	
+	ImageSearch, positionX, positionY, Width/2, 0, Width, A_ScreenHeight, *24 files\xs\x6.png
+		if ErrorLevel = 0
+			;MsgBox The icon was found at %positionX% x %positionY%.  sdfsdf
+			CloseXReturnMouse(positionX, positionY, OriginalPositionX, OriginalPositionY)					
+	}
+}
+
+Return
+}
+
+CloseXReturnMouse(CloseX, CloseY, savedX, savedY)
+{
+	MouseClick, Left, CloseX+2, CloseY+2 																
+	sleep 10
+	MouseMove, %savedX%, %savedY%        
+Return
+}
+
 ; ...........................................................................
-IfWinActive, %WinTitle%
+;#IfWinActive, '%WinTitle%'
+#IfWinActive ahk_class ShockwaveFlash ;cant get WinTitle to reliably only fire, hardcode class
 {
 FindRealmSubClick:
 	PortalClicked = 1
@@ -576,20 +639,31 @@ return
 
 FindRealmSub:
 	MouseGetPos, mouseX, mouseY 
-	ImageSearch, bagX, bagY, 0, 0, A_ScreenWidth, A_ScreenHeight, *24 files\bag.png
+	ImageSearch, bagX, bagY, 0, 0, A_ScreenWidth, A_ScreenHeight, *24 files\bagfs2.png
 
-	EnterPor1X := (bagX + 50)
-	EnterPor2X := (bagX + 115) 
+	;EnterPor1X := (bagX + 50)
+	EnterPor1X := (bagX + 118)
+	;EnterPor2X := (bagX + 115) 
+	EnterPor2X := (bagX + 257) 
 
-	EnterPor1Y := (bagY + 191)
-	EnterPor2Y := (bagY + 226)
+	;EnterPor1Y := (bagY + 191)
+	EnterPor1Y := (bagY + 329)
+	;EnterPor2Y := (bagY + 226)
+	EnterPor2Y := (bagY + 379)
 
-	RealmName1X := (bagX - 5)
-	RealmName2X := (bagX + 175)
+	;RealmName1X := (bagX - 5)
+	RealmName1X := (bagX - 10)
+	;RealmName2X := (bagX + 175)
+	;RealmName2X := (bagX + 405) ;405 seems too few
+	RealmName2X := (bagX + 505)
 
-	RealmName1Y := (bagY + 141)
-	RealmName2Y := (bagY + 181)
+	;RealmName1Y := (bagY + 141)
+	;RealmName2Y := (bagY + 181)
 
+	RealmName1Y := (bagY + 243)
+	RealmName2Y := (bagY + 301)
+
+	
 	If PortalClicked
 	{
 		if mouseX > %EnterPor1X%  and mouseX < %EnterPor2X% and mouseY > %EnterPor1Y% and mouseY < %EnterPor2Y%
@@ -665,7 +739,7 @@ return
 
 ServerGUISub:
 CoordMode, Pixel, Screen
-ImageSearch, bagX, bagY, 0, 0, A_ScreenWidth, A_ScreenHeight, *58 files/bag.png
+ImageSearch, bagX, bagY, 0, 0, A_ScreenWidth, A_ScreenHeight, *58 files/bagfs2.png
 	if errorlevel=0
 	{
 		ServGuiX := (bagX - 470)
@@ -711,20 +785,35 @@ return
 
 EventGuiSub:
 CoordMode, Pixel, Screen
-ImageSearch, bagX, bagY, 0, 0, A_ScreenWidth, A_ScreenHeight, *58 files/bag.png
+ImageSearch, bagX, bagY, 0, 0, A_ScreenWidth, A_ScreenHeight, *58 files/bagfs2.png
 	if errorlevel=0
 	{	
-		EventsGuiX := (bagX - 334)
+		;EventsGuiX := (bagX - 334)
+		EventsGuiX := (bagX - 830)
 		EventsGuiY := (bagY - 5)
 		EventsGuiX := (EventsGuiX - (number_of_events * 39)/2) 
-
+		;EventsGuiX := (bagX - 60)
+		;EventsGuiY := (bagY - 325)
 		InGame = 1
 			
 	
 	}
 	else
 	{
-	InGame = 0
+	;InGame = 0 was	
+		PixelSearch, Px, Py, 0, 0, A_ScreenWidth, A_ScreenHeight, 0x00FFEA, 0, Fast
+		if ErrorLevel = 0 
+		{
+		EventsGuiX := (Px - 650) 
+		EventsGuiX := (EventsGuiX - (number_of_events * 39)/2) 
+		EventsGuiY := (Py + 580)
+		InGame = 1
+		}
+		else
+		{
+		InGame = Error
+		}
+		;end edit		
 	}
 CoordMode, Pixel, Relative
 
@@ -849,3 +938,4 @@ return
 	picked_server :="AsiaSouthEast"
 	Gosub, PickServer
 return 
+
