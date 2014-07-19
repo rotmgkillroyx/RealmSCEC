@@ -5,6 +5,8 @@ SetWorkingDir %A_ScriptDir%
 SetKeyDelay 0
 SetMouseDelay 0
 SetTitleMatchMode 2
+;global time_left ;global for 25 second countdown time remaining
+global dungeon ; global so it can be reset from function
 #Hotstring EndChars `n
 
 ; Check saved window title settings
@@ -34,7 +36,7 @@ arrayEU := array("EUWest", "EUWest2", "EUSouth", "EUSouthWest", "EUNorth", "EUNo
 ;arrayUS := array("USWest","USWest2","USEast","USEast2","USEast3","USSouth","USSouth2","USSouth3","USSouthWest","USMidWest","USMidWest2","USNorthWest")
 arrayUS := array("USWest","USWest2","USEast","USEast2","USEast3","USSouth","USSouth3","USSouthWest","USMidWest","USMidWest2","USNorthWest")
 arrayRealms :=array("Beholder","Cyclops","Medusa","Djinn","Ogre","Flayer","GuildHall","BeholderS","DjinnS","CyclopsS","FlayerS","MedusaS","OgreS")
-
+arrayDungeons :=array("abyss", "Cemetary", "madlab", "SpiderDen", "spriteworld", "UndeadLair", "manor", "trench", "testmode", "SnakePit", "forestmaze", "DeadWaterDocks", "WoodLandLab", "Shatters", "CrawlingDepths", "Tomb")
 
 ServersGUIButtonAdd(Name,Custom=""){
 	Gui, ServersGUI:Add, Text,	 gPickServerGUI %Custom% h20 w100 center, %Name%
@@ -65,6 +67,7 @@ Hotkey, ~LButton, FindRealmSubClick
 Gui 1:+LabelRealmBuddy
 Gui, RealmBuddy:Margin, 5, 5
 Gui, RealmBuddy:font, s9, Tahoma
+Gui, RealmBuddy:Add, Text, w80 h15 Center vDUNGEON, WaitingD...
 Gui, RealmBuddy:Add, Text, w80 h15 Center vREALM, Waiting...
 Gui, RealmBuddy:Add, Text,  w80 h15 Center vSERVER, %server%
 Gui, RealmBuddy:Add, Text,  w80 h15 cGreen Center vERROR, GOOD
@@ -279,7 +282,6 @@ Menu, ServersMenu, Add, US, :USmenu
 ; Asia Servers List
 Menu, ASIAmenu, Add, AsiaSouthEast, PickServerMENU
 Menu, ASIAmenu, Add, AsiaEast, PickServerMENU
-
 Menu, ServersMenu, Add, ASIA, :ASIAmenu
 
 
@@ -629,6 +631,51 @@ Return
 }
 
 ; ...........................................................................
+
+
+
+;#IfWinActive, '%WinTitle%'
+#IfWinActive ahk_class ShockwaveFlash ;cant get WinTitle to reliably only fire, hardcode class
++4::         
+{
+	GoSub CallDungeon
+return
+}
+
+CallDungeon:
+{
+		if dungeon {
+		;SplashTextOn, 325, , %realm% %dungeon% %time_left%
+		;Sleep, 2000 
+		;SplasHtextoff 
+			
+	;if time_left 
+	;{
+		clipboard = TP: %dungeon% %time_left% secs
+		GoSub, FastChat	
+;	}	
+;	else
+;	{
+;		clipboard = GONE
+;		GoSub, FastChat	
+;	}
+	}
+	
+return
+}
+
+
+#IfWinActive ahk_class ShockwaveFlash ;cant get WinTitle to reliably only fire, hardcode class
++5::         
+{
+	SetTimer, TwentyFiveSleep, Off
+	dungeon=
+	time_left=
+	
+	;ThirtySleep() ;kick of 30 seconds for testing
+	return
+}
+
 ;#IfWinActive, '%WinTitle%'
 #IfWinActive ahk_class ShockwaveFlash ;cant get WinTitle to reliably only fire, hardcode class
 {
@@ -640,25 +687,17 @@ return
 FindRealmSub:
 	MouseGetPos, mouseX, mouseY 
 	ImageSearch, bagX, bagY, 0, 0, A_ScreenWidth, A_ScreenHeight, *24 files\bagfs2.png
+	
+	;EnterPor1X := (bagX + 118)
+	EnterPor1X := (bagX + 50) ;make it easier to click on dungeon
+	EnterPor2X := (bagX + 300) 
 
-	;EnterPor1X := (bagX + 50)
-	EnterPor1X := (bagX + 118)
-	;EnterPor2X := (bagX + 115) 
-	EnterPor2X := (bagX + 257) 
-
-	;EnterPor1Y := (bagY + 191)
 	EnterPor1Y := (bagY + 329)
-	;EnterPor2Y := (bagY + 226)
 	EnterPor2Y := (bagY + 379)
 
-	;RealmName1X := (bagX - 5)
 	RealmName1X := (bagX - 10)
-	;RealmName2X := (bagX + 175)
 	;RealmName2X := (bagX + 405) ;405 seems too few
 	RealmName2X := (bagX + 505)
-
-	;RealmName1Y := (bagY + 141)
-	;RealmName2Y := (bagY + 181)
 
 	RealmName1Y := (bagY + 243)
 	RealmName2Y := (bagY + 301)
@@ -668,12 +707,14 @@ FindRealmSub:
 	{
 		if mouseX > %EnterPor1X%  and mouseX < %EnterPor2X% and mouseY > %EnterPor1Y% and mouseY < %EnterPor2Y%
 		{
-			GoSub,FindRealm
+			GoSub,FindDungeon
+			GoSub,FindRealm			
 		}
 	}
 	Else
 	{
-		GoSub, FindRealm
+		GoSub, FindDungeon
+		GoSub, FindRealm		
 	}
 	PortalClicked = 0
 return
@@ -693,7 +734,92 @@ FindRealm:
 	}
 return
 
+FindDungeon:
+	for k, v2 in arrayDungeons {
+		ImageSearch, realmX, realmY, %RealmName1X%, %RealmName1Y%, %RealmName2X%, %RealmName2Y%, *24 dungeons\%v2%.png
+			if ErrorLevel
+			{}
+			else
+			{							
+				dungeon = %v2%
+				GuiControl,RealmBuddy:, DUNGEON, %v2%		
+				time_left = 25
+				GoSub CallDungeon				
+				
+				;ThirtySleep
+				SetTimer, TwentyFiveSleep
+				;GoSub XBeeper ;GoSub blocks here
+				
+				;SplashTextOn, 325, , testing...%v2% %time_left%
+				;Sleep, 2000
+				;SplasHtextoff		
+				
+			}
+	}
+return
 
+TwentyFiveSleep:
+{
+	if dungeon {
+		Loop, 25
+			{
+			;MsgBox, Iteration number is %A_Index%.  ; A_Index will be 1, 2, then 3
+			Sleep, 1000
+			time_left:= 25-A_Index
+			if (time_left < 3 and dungeon)
+			{
+				SoundBeep, (400+100*A_Index), 250 ; a 250 ms beep here can add a second overall
+			}
+		}	
+	}
+	;clear dungeon
+			dungeon=
+	return
+
+}
+
+XBeeper:
+;Timer1 = 26000 ; = Seconds * 1000 i.e. 5 seconds = 5000
+; Timer1 = 21000 ; 26000 to 21000 took about 7 seconds off
+Timer1 = 8000 
+Division = 2
+	anewtmp4 := Timer1/Division ;Set the tmp variable to the starting
+	;MsgBox, flah %anewtmp2% mee
+	count = 0
+	while anewtmp4 > 0 
+	{
+		Sleep, anewtmp4
+		;MsgBox, flah anewtmp2
+		SoundBeep, (400+200*count), 250
+		count += 1
+		anewtmp4 := (anewtmp4/Division)
+		if(anewtmp4 < 500)
+		{
+			anewtmp4 = -1
+			count += 1
+			Loop, 3
+			{
+				SoundBeep, (400+200*count), 250
+				Sleep, 100
+			}
+		}
+	}
+return
+
+ThirtySleep:
+{
+	Loop, 25
+		{
+		;MsgBox, Iteration number is %A_Index%.  ; A_Index will be 1, 2, then 3
+		Sleep, 1000
+		time_left:= 25-A_Index
+		if (%time_left% < 1)
+		{
+			dungeon=
+		}
+	}	
+	return
+}
 
 FastChat:
 	Blockinput, on
